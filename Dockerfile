@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         intl \
         opcache \
         zip \
+    && pecl install pcov \
+    && docker-php-ext-enable pcov \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
