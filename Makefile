@@ -4,7 +4,8 @@ PHP_CONTAINER  = beakon_php
 .PHONY: help up down restart shell logs \
         install composer-update \
         migrate migrate-status diff rollback \
-        cache-clear cc
+        cache-clear cc \
+        test coverage
 
 help: ## Exibe esta mensagem de ajuda
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUso: make \033[36m<target>\033[0m\n\nTargets:\n"} \
@@ -46,6 +47,13 @@ diff: ## Gera uma nova migration comparando entidades com o schema
 
 rollback: ## Desfaz a última migration executada
 	docker exec $(PHP_CONTAINER) php bin/console doctrine:migrations:migrate prev --no-interaction
+
+# ── Testes ───────────────────────────────────────────────────
+test: ## Executa a suite de testes (sem cobertura)
+	docker exec $(PHP_CONTAINER) php bin/phpunit
+
+coverage: ## Gera relatório de cobertura em var/coverage/html
+	docker exec $(PHP_CONTAINER) php bin/phpunit --coverage-html var/coverage/html --coverage-clover var/coverage/clover.xml --coverage-text
 
 # ── Cache ────────────────────────────────────────────────────
 cache-clear cc: ## Limpa e regenera o cache do Symfony
