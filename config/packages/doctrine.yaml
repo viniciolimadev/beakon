@@ -2,6 +2,8 @@ doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
         use_savepoints: true
+        types:
+            uuid: Symfony\Bridge\Doctrine\Types\UuidType
 
     orm:
         auto_generate_proxy_classes: true
