@@ -1,5 +1,8 @@
-controllers:
-    resource:
-        path: ../src/Controller/
-        namespace: App\Controller
-    type: attribute
+# As rotas da aplicação são definidas em config/routes/
+# O MicroKernelTrait carrega automaticamente todos os arquivos *.yaml desta pasta.
+#
+# Convenção de nomes:
+#   api_health.yaml   → rotas do HealthController
+#   api_auth.yaml     → rotas de autenticação
+#   api_tasks.yaml    → rotas de tarefas
+#   (etc.)
