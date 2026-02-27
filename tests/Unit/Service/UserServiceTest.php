@@ -9,6 +9,7 @@ use App\Repository\UserRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\ConstraintViolation;
@@ -18,10 +19,10 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class UserServiceTest extends TestCase
 {
     private UserService $service;
-    private UserRepository $repo;
-    private UserPasswordHasherInterface $hasher;
-    private EntityManagerInterface $em;
-    private ValidatorInterface $validator;
+    private UserRepository&Stub $repo;
+    private UserPasswordHasherInterface&Stub $hasher;
+    private EntityManagerInterface&Stub $em;
+    private ValidatorInterface&Stub $validator;
 
     protected function setUp(): void
     {
