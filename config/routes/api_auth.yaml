@@ -2,3 +2,8 @@ api_auth_register:
     path:       /api/auth/register
     controller: App\Controller\Auth\RegisterController
     methods:    [POST]
+
+api_auth_login:
+    path:       /api/auth/login
+    controller: App\Controller\Auth\LoginController
+    methods:    [POST]

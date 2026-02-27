@@ -2,8 +2,10 @@
 
 namespace App\Service;
 
+use App\Dto\LoginInput;
 use App\Dto\RegisterInput;
 use App\Entity\User;
+use App\Exception\InvalidCredentialsException;
 use App\Exception\ValidationException;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -50,6 +52,17 @@ final class UserService
 
         $this->em->persist($user);
         $this->em->flush();
+
+        return $user;
+    }
+
+    public function verifyCredentials(LoginInput $input): User
+    {
+        $user = $this->userRepository->findByEmail($input->email);
+
+        if ($user === null || !$this->hasher->isPasswordValid($user, $input->password)) {
+            throw new InvalidCredentialsException();
+        }
 
         return $user;
     }

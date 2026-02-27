@@ -6,12 +6,13 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
 #[ORM\HasLifecycleCallbacks]
-class User implements PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME, unique: true)]
@@ -36,6 +37,12 @@ class User implements PasswordAuthenticatedUserInterface
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $lastActivityDate = null;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $refreshToken = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $refreshTokenExpiresAt = null;
 
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
@@ -135,6 +142,46 @@ class User implements PasswordAuthenticatedUserInterface
     public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    // ── UserInterface ─────────────────────────────────────────
+
+    public function getUserIdentifier(): string
+    {
+        return $this->email;
+    }
+
+    public function getRoles(): array
+    {
+        return ['ROLE_USER'];
+    }
+
+    public function eraseCredentials(): void {}
+
+    // ── Refresh Token ─────────────────────────────────────────
+
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken;
+    }
+
+    public function setRefreshToken(?string $refreshToken): static
+    {
+        $this->refreshToken = $refreshToken;
+
+        return $this;
+    }
+
+    public function getRefreshTokenExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->refreshTokenExpiresAt;
+    }
+
+    public function setRefreshTokenExpiresAt(?\DateTimeImmutable $expiresAt): static
+    {
+        $this->refreshTokenExpiresAt = $expiresAt;
+
+        return $this;
     }
 
     #[ORM\PrePersist]
