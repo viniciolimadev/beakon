@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 final class ApiResponse
 {
@@ -62,5 +63,20 @@ final class ApiResponse
     public static function unprocessable(string $error = 'Unprocessable Entity'): JsonResponse
     {
         return self::error($error, 422);
+    }
+
+    public static function validationError(ConstraintViolationListInterface $violations): JsonResponse
+    {
+        $errors = [];
+        foreach ($violations as $violation) {
+            $field          = $violation->getPropertyPath();
+            $errors[$field] = $violation->getMessage();
+        }
+
+        return new JsonResponse([
+            'error'      => 'Validation failed.',
+            'code'       => 422,
+            'violations' => $errors,
+        ], 422);
     }
 }
