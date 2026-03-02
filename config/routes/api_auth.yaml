@@ -7,3 +7,8 @@ api_auth_login:
     path:       /api/auth/login
     controller: App\Controller\Auth\LoginController
     methods:    [POST]
+
+api_auth_refresh:
+    path:       /api/auth/refresh
+    controller: App\Controller\Auth\RefreshController
+    methods:    [POST]

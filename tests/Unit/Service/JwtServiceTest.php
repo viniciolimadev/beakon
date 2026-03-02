@@ -3,6 +3,8 @@
 namespace App\Tests\Unit\Service;
 
 use App\Entity\User;
+use App\Exception\InvalidRefreshTokenException;
+use App\Repository\UserRepository;
 use App\Service\JwtService;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -15,12 +17,14 @@ class JwtServiceTest extends TestCase
     private JwtService $service;
     private JWTTokenManagerInterface&Stub $jwtManager;
     private EntityManagerInterface&Stub $em;
+    private UserRepository&Stub $userRepository;
 
     protected function setUp(): void
     {
-        $this->jwtManager = $this->createStub(JWTTokenManagerInterface::class);
-        $this->em         = $this->createStub(EntityManagerInterface::class);
-        $this->service    = new JwtService($this->jwtManager, $this->em);
+        $this->jwtManager     = $this->createStub(JWTTokenManagerInterface::class);
+        $this->em             = $this->createStub(EntityManagerInterface::class);
+        $this->userRepository = $this->createStub(UserRepository::class);
+        $this->service        = new JwtService($this->jwtManager, $this->em, $this->userRepository);
     }
 
     private function makeUser(): User
@@ -33,7 +37,7 @@ class JwtServiceTest extends TestCase
         return $user;
     }
 
-    // ── tokens gerados ────────────────────────────────────────
+    // ── createTokensForUser ────────────────────────────────────
 
     #[Test]
     public function creates_access_token(): void
@@ -97,11 +101,80 @@ class JwtServiceTest extends TestCase
                 return 'jwt.access.token';
             });
 
-        $service = new JwtService($jwtManager, $this->em);
+        $service = new JwtService($jwtManager, $this->em, $this->userRepository);
         $service->createTokensForUser($this->makeUser());
 
         $this->assertArrayHasKey('user_id', $capturedPayload);
         $this->assertArrayHasKey('email', $capturedPayload);
         $this->assertSame('alice@example.com', $capturedPayload['email']);
+    }
+
+    // ── refreshAccessToken ────────────────────────────────────
+
+    #[Test]
+    public function refreshes_tokens_with_valid_refresh_token(): void
+    {
+        $user = $this->makeUser();
+        $user->setRefreshToken('valid-refresh-token');
+        $user->setRefreshTokenExpiresAt(new \DateTimeImmutable('+1 day'));
+
+        $repo = $this->createStub(UserRepository::class);
+        $repo->method('findByRefreshToken')->willReturn($user);
+
+        $this->jwtManager->method('createFromPayload')->willReturn('new.jwt.access.token');
+
+        $service = new JwtService($this->jwtManager, $this->em, $repo);
+        $tokens  = $service->refreshAccessToken('valid-refresh-token');
+
+        $this->assertArrayHasKey('access_token', $tokens);
+        $this->assertArrayHasKey('refresh_token', $tokens);
+        $this->assertSame('new.jwt.access.token', $tokens['access_token']);
+    }
+
+    #[Test]
+    public function throws_on_invalid_refresh_token(): void
+    {
+        $repo = $this->createStub(UserRepository::class);
+        $repo->method('findByRefreshToken')->willReturn(null);
+
+        $service = new JwtService($this->jwtManager, $this->em, $repo);
+
+        $this->expectException(InvalidRefreshTokenException::class);
+        $service->refreshAccessToken('inexistente');
+    }
+
+    #[Test]
+    public function throws_on_expired_refresh_token(): void
+    {
+        $user = $this->makeUser();
+        $user->setRefreshToken('expired-token');
+        $user->setRefreshTokenExpiresAt(new \DateTimeImmutable('-1 day'));
+
+        $repo = $this->createStub(UserRepository::class);
+        $repo->method('findByRefreshToken')->willReturn($user);
+
+        $service = new JwtService($this->jwtManager, $this->em, $repo);
+
+        $this->expectException(InvalidRefreshTokenException::class);
+        $service->refreshAccessToken('expired-token');
+    }
+
+    #[Test]
+    public function rotates_refresh_token_on_refresh(): void
+    {
+        $user = $this->makeUser();
+        $user->setRefreshToken('old-refresh-token');
+        $user->setRefreshTokenExpiresAt(new \DateTimeImmutable('+1 day'));
+
+        $repo = $this->createStub(UserRepository::class);
+        $repo->method('findByRefreshToken')->willReturn($user);
+
+        $this->jwtManager->method('createFromPayload')->willReturn('new.jwt.access.token');
+
+        $service = new JwtService($this->jwtManager, $this->em, $repo);
+        $tokens  = $service->refreshAccessToken('old-refresh-token');
+
+        $this->assertNotSame('old-refresh-token', $tokens['refresh_token']);
+        $this->assertSame($tokens['refresh_token'], $user->getRefreshToken());
     }
 }
