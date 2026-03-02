@@ -37,6 +37,9 @@ class Task
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $dueDate = null;
 
+    #[ORM\Column(options: ['default' => 0])]
+    private int $sortOrder = 0;
+
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
@@ -115,6 +118,17 @@ class Task
     public function setDueDate(?\DateTimeImmutable $dueDate): static
     {
         $this->dueDate = $dueDate;
+        return $this;
+    }
+
+    public function getSortOrder(): int
+    {
+        return $this->sortOrder;
+    }
+
+    public function setSortOrder(int $sortOrder): static
+    {
+        $this->sortOrder = $sortOrder;
         return $this;
     }
 
