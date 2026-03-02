@@ -68,7 +68,7 @@ class TaskServiceTest extends TestCase
     #[Test]
     public function empty_title_throws_validation_exception(): void
     {
-        $violations = $this->createMock(\Symfony\Component\Validator\ConstraintViolationListInterface::class);
+        $violations = $this->createStub(\Symfony\Component\Validator\ConstraintViolationListInterface::class);
         $violations->method('count')->willReturn(1);
 
         $this->validator->method('validate')->willReturn($violations);
