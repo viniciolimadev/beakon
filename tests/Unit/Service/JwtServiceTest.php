@@ -177,4 +177,36 @@ class JwtServiceTest extends TestCase
         $this->assertNotSame('old-refresh-token', $tokens['refresh_token']);
         $this->assertSame($tokens['refresh_token'], $user->getRefreshToken());
     }
+
+    // ── logout ────────────────────────────────────────────────
+
+    #[Test]
+    public function clears_refresh_token_on_logout(): void
+    {
+        $user = $this->makeUser();
+        $user->setRefreshToken('some-token');
+        $user->setRefreshTokenExpiresAt(new \DateTimeImmutable('+7 days'));
+
+        $repo = $this->createStub(UserRepository::class);
+        $repo->method('findByRefreshToken')->willReturn($user);
+
+        $service = new JwtService($this->jwtManager, $this->em, $repo);
+        $service->logout('some-token');
+
+        $this->assertNull($user->getRefreshToken());
+        $this->assertNull($user->getRefreshTokenExpiresAt());
+    }
+
+    #[Test]
+    public function logout_does_nothing_when_token_not_found(): void
+    {
+        $repo = $this->createStub(UserRepository::class);
+        $repo->method('findByRefreshToken')->willReturn(null);
+
+        $service = new JwtService($this->jwtManager, $this->em, $repo);
+
+        // Não deve lançar exceção
+        $service->logout('token-inexistente');
+        $this->addToAssertionCount(1);
+    }
 }

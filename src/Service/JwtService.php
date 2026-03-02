@@ -61,4 +61,18 @@ final class JwtService
             'refresh_token' => $newRefreshToken,
         ];
     }
+
+    public function logout(string $refreshToken): void
+    {
+        $user = $this->userRepository->findByRefreshToken($refreshToken);
+
+        if ($user === null) {
+            return;
+        }
+
+        $user->setRefreshToken(null);
+        $user->setRefreshTokenExpiresAt(null);
+
+        $this->em->flush();
+    }
 }
