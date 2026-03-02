@@ -22,3 +22,8 @@ api_tasks_change_status:
     path:       /api/tasks/{id}/status
     controller: App\Controller\Task\ChangeTaskStatusController
     methods:    [PATCH]
+
+api_tasks_reorder:
+    path:       /api/tasks/{id}/reorder
+    controller: App\Controller\Task\ReorderTaskController
+    methods:    [PATCH]

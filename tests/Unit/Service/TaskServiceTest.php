@@ -5,6 +5,7 @@ namespace App\Tests\Unit\Service;
 use App\Dto\CreateTaskInput;
 use App\Entity\User;
 use App\Exception\ValidationException;
+use App\Repository\TaskRepository;
 use App\Service\TaskService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
@@ -20,13 +21,15 @@ class TaskServiceTest extends TestCase
     private ValidatorInterface&Stub $validator;
     private EntityManagerInterface&Stub $em;
     private EventDispatcherInterface&Stub $dispatcher;
+    private TaskRepository&Stub $taskRepository;
 
     protected function setUp(): void
     {
-        $this->validator  = $this->createStub(ValidatorInterface::class);
-        $this->em         = $this->createStub(EntityManagerInterface::class);
-        $this->dispatcher = $this->createStub(EventDispatcherInterface::class);
-        $this->service    = new TaskService($this->validator, $this->em, $this->dispatcher);
+        $this->validator      = $this->createStub(ValidatorInterface::class);
+        $this->em             = $this->createStub(EntityManagerInterface::class);
+        $this->dispatcher     = $this->createStub(EventDispatcherInterface::class);
+        $this->taskRepository = $this->createStub(TaskRepository::class);
+        $this->service        = new TaskService($this->validator, $this->em, $this->dispatcher, $this->taskRepository);
     }
 
     private function makeUser(): User

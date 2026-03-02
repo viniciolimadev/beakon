@@ -67,4 +67,20 @@ class TaskRepository extends ServiceEntityRepository
             'totalPages' => (int) ceil($total / max($perPage, 1)),
         ];
     }
+
+    /**
+     * @return Task[]
+     */
+    public function findByUserAndStatus(User $user, string $status): array
+    {
+        return $this->createQueryBuilder('t')
+            ->where('t.user = :user')
+            ->andWhere('t.status = :status')
+            ->setParameter('user', $user)
+            ->setParameter('status', $status)
+            ->orderBy('t.sortOrder', 'ASC')
+            ->addOrderBy('t.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
