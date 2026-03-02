@@ -79,4 +79,40 @@ class TaskServiceTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->service->create($input, $this->makeUser());
     }
+
+    #[Test]
+    public function creates_task_with_all_optional_fields(): void
+    {
+        $this->validator->method('validate')->willReturn(new ConstraintViolationList());
+
+        $input                   = new CreateTaskInput();
+        $input->title            = 'Tarefa completa';
+        $input->description      = 'Uma descrição detalhada';
+        $input->status           = 'in_progress';
+        $input->priority         = 'high';
+        $input->estimatedMinutes = 90;
+        $input->dueDate          = '2026-12-31T23:59:59+00:00';
+
+        $task = $this->service->create($input, $this->makeUser());
+
+        $this->assertSame('Tarefa completa', $task->getTitle());
+        $this->assertSame('Uma descrição detalhada', $task->getDescription());
+        $this->assertSame('in_progress', $task->getStatus());
+        $this->assertSame('high', $task->getPriority());
+        $this->assertSame(90, $task->getEstimatedMinutes());
+        $this->assertNotNull($task->getDueDate());
+    }
+
+    #[Test]
+    public function invalid_due_date_throws_validation_exception(): void
+    {
+        $this->validator->method('validate')->willReturn(new ConstraintViolationList());
+
+        $input          = new CreateTaskInput();
+        $input->title   = 'Tarefa';
+        $input->dueDate = 'not-a-date-at-all';
+
+        $this->expectException(ValidationException::class);
+        $this->service->create($input, $this->makeUser());
+    }
 }

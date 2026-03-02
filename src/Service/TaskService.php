@@ -7,6 +7,8 @@ use App\Entity\Task;
 use App\Entity\User;
 use App\Exception\ValidationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class TaskService
@@ -26,7 +28,39 @@ final class TaskService
 
         $task = new Task();
         $task->setTitle($input->title);
+        $task->setStatus($input->status);
+        $task->setPriority($input->priority);
         $task->setUser($user);
+
+        if ($input->description !== null) {
+            $task->setDescription($input->description);
+        }
+
+        if ($input->estimatedMinutes !== null) {
+            $task->setEstimatedMinutes($input->estimatedMinutes);
+        }
+
+        if ($input->dueDate !== null) {
+            $dueDate = \DateTimeImmutable::createFromFormat(\DateTimeInterface::ATOM, $input->dueDate)
+                ?: \DateTimeImmutable::createFromFormat('Y-m-d', $input->dueDate)
+                ?: false;
+
+            if ($dueDate === false) {
+                $list = new ConstraintViolationList([
+                    new ConstraintViolation(
+                        'Invalid date format. Use ISO 8601 (e.g. 2026-03-15T10:00:00+00:00).',
+                        '',
+                        [],
+                        $input,
+                        'dueDate',
+                        $input->dueDate,
+                    ),
+                ]);
+                throw new ValidationException($list);
+            }
+
+            $task->setDueDate($dueDate);
+        }
 
         $this->em->persist($task);
         $this->em->flush();

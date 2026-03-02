@@ -140,4 +140,82 @@ class CreateTaskControllerTest extends WebTestCase
 
         $this->assertSame(401, $response->getStatusCode());
     }
+
+    // ── tarefa completa (US-10) ───────────────────────────────
+
+    public function test_create_task_with_all_fields_returns_201(): void
+    {
+        $response = $this->createTask([
+            'title'             => 'Tarefa completa',
+            'description'       => 'Detalhes da tarefa',
+            'status'            => 'in_progress',
+            'priority'          => 'high',
+            'estimated_minutes' => 90,
+            'due_date'          => '2026-12-31T23:59:59+00:00',
+        ], $this->accessToken);
+
+        $this->assertSame(201, $response->getStatusCode());
+    }
+
+    public function test_response_includes_all_optional_fields(): void
+    {
+        $response = $this->createTask([
+            'title'             => 'Com opcionais',
+            'description'       => 'Desc',
+            'estimated_minutes' => 30,
+            'due_date'          => '2026-06-01T00:00:00+00:00',
+        ], $this->accessToken);
+
+        $body = json_decode($response->getContent(), true);
+
+        $this->assertArrayHasKey('description', $body['data']);
+        $this->assertArrayHasKey('estimatedMinutes', $body['data']);
+        $this->assertArrayHasKey('dueDate', $body['data']);
+        $this->assertSame('Desc', $body['data']['description']);
+        $this->assertSame(30, $body['data']['estimatedMinutes']);
+        $this->assertNotNull($body['data']['dueDate']);
+    }
+
+    public function test_null_optional_fields_appear_in_response(): void
+    {
+        $response = $this->createTask(['title' => 'Só título'], $this->accessToken);
+        $body     = json_decode($response->getContent(), true);
+
+        $this->assertArrayHasKey('description', $body['data']);
+        $this->assertArrayHasKey('estimatedMinutes', $body['data']);
+        $this->assertArrayHasKey('dueDate', $body['data']);
+        $this->assertNull($body['data']['description']);
+        $this->assertNull($body['data']['estimatedMinutes']);
+        $this->assertNull($body['data']['dueDate']);
+    }
+
+    public function test_invalid_status_returns_422(): void
+    {
+        $response = $this->createTask([
+            'title'  => 'Status inválido',
+            'status' => 'urgente',
+        ], $this->accessToken);
+
+        $this->assertSame(422, $response->getStatusCode());
+    }
+
+    public function test_invalid_priority_returns_422(): void
+    {
+        $response = $this->createTask([
+            'title'    => 'Priority inválida',
+            'priority' => 'crítica',
+        ], $this->accessToken);
+
+        $this->assertSame(422, $response->getStatusCode());
+    }
+
+    public function test_invalid_due_date_returns_422(): void
+    {
+        $response = $this->createTask([
+            'title'    => 'Data inválida',
+            'due_date' => 'ontem à tarde',
+        ], $this->accessToken);
+
+        $this->assertSame(422, $response->getStatusCode());
+    }
 }
