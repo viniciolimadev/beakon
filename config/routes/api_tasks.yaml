@@ -12,3 +12,8 @@ api_tasks_update:
     path:       /api/tasks/{id}
     controller: App\Controller\Task\UpdateTaskController
     methods:    [PUT]
+
+api_tasks_change_status:
+    path:       /api/tasks/{id}/status
+    controller: App\Controller\Task\ChangeTaskStatusController
+    methods:    [PATCH]

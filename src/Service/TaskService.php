@@ -2,12 +2,15 @@
 
 namespace App\Service;
 
+use App\Dto\ChangeTaskStatusInput;
 use App\Dto\CreateTaskInput;
 use App\Dto\UpdateTaskInput;
 use App\Entity\Task;
 use App\Entity\User;
+use App\Event\TaskCompletedEvent;
 use App\Exception\ValidationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Uid\Uuid;
@@ -20,6 +23,7 @@ final class TaskService
     public function __construct(
         private readonly ValidatorInterface $validator,
         private readonly EntityManagerInterface $em,
+        private readonly EventDispatcherInterface $dispatcher,
     ) {}
 
     public function create(CreateTaskInput $input, User $user): Task
@@ -129,6 +133,49 @@ final class TaskService
         }
 
         $this->em->flush();
+
+        return $task;
+    }
+
+    public function changeStatus(string $id, ChangeTaskStatusInput $input, User $user): Task
+    {
+        try {
+            $uuid = Uuid::fromString($id);
+        } catch (\InvalidArgumentException) {
+            throw new NotFoundHttpException('Task not found.');
+        }
+
+        /** @var Task|null $task */
+        $task = $this->em->find(Task::class, $uuid);
+
+        if ($task === null) {
+            throw new NotFoundHttpException('Task not found.');
+        }
+
+        if ($task->getUser() !== $user) {
+            throw new AccessDeniedHttpException('Access denied.');
+        }
+
+        $violations = $this->validator->validate($input);
+
+        if (count($violations) > 0) {
+            throw new ValidationException($violations);
+        }
+
+        $previousStatus = $task->getStatus();
+        $task->setStatus($input->status);
+
+        if ($input->status === 'done') {
+            $task->setCompletedAt(new \DateTimeImmutable());
+        } elseif ($previousStatus === 'done') {
+            $task->setCompletedAt(null);
+        }
+
+        $this->em->flush();
+
+        if ($input->status === 'done') {
+            $this->dispatcher->dispatch(new TaskCompletedEvent($task, $user));
+        }
 
         return $task;
     }

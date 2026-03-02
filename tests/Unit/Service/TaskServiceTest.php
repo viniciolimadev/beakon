@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -18,12 +19,14 @@ class TaskServiceTest extends TestCase
     private TaskService $service;
     private ValidatorInterface&Stub $validator;
     private EntityManagerInterface&Stub $em;
+    private EventDispatcherInterface&Stub $dispatcher;
 
     protected function setUp(): void
     {
-        $this->validator = $this->createStub(ValidatorInterface::class);
-        $this->em        = $this->createStub(EntityManagerInterface::class);
-        $this->service   = new TaskService($this->validator, $this->em);
+        $this->validator  = $this->createStub(ValidatorInterface::class);
+        $this->em         = $this->createStub(EntityManagerInterface::class);
+        $this->dispatcher = $this->createStub(EventDispatcherInterface::class);
+        $this->service    = new TaskService($this->validator, $this->em, $this->dispatcher);
     }
 
     private function makeUser(): User

@@ -13,7 +13,7 @@ final class UpdateTaskInput
     #[Assert\Length(max: 2000)]
     public ?string $description = null;
 
-    #[Assert\Choice(choices: ['inbox', 'in_progress', 'done'], message: 'Invalid status.')]
+    #[Assert\Choice(choices: ['inbox', 'today', 'in_progress', 'done'], message: 'Invalid status.')]
     public string $status = 'inbox';
 
     #[Assert\Choice(choices: ['low', 'medium', 'high'], message: 'Invalid priority.')]
