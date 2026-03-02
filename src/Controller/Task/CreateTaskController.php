@@ -13,7 +13,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 class CreateTaskController extends AbstractController
 {
-    public function __construct(private readonly TaskService $taskService) {}
+    public function __construct(private readonly TaskService $taskService)
+    {
+    }
 
     public function __invoke(Request $request): JsonResponse
     {
@@ -22,7 +24,7 @@ class CreateTaskController extends AbstractController
 
         $payload = json_decode($request->getContent(), true) ?? [];
 
-        $input        = new CreateTaskInput();
+        $input = new CreateTaskInput();
         $input->title = trim((string) ($payload['title'] ?? ''));
 
         if (isset($payload['description'])) {
@@ -52,14 +54,15 @@ class CreateTaskController extends AbstractController
         }
 
         return ApiResponse::created([
-            'id'               => (string) $task->getId(),
-            'title'            => $task->getTitle(),
-            'description'      => $task->getDescription(),
-            'status'           => $task->getStatus(),
-            'priority'         => $task->getPriority(),
+            'id' => (string) $task->getId(),
+            'title' => $task->getTitle(),
+            'description' => $task->getDescription(),
+            'status' => $task->getStatus(),
+            'priority' => $task->getPriority(),
             'estimatedMinutes' => $task->getEstimatedMinutes(),
-            'dueDate'          => $task->getDueDate()?->format(\DateTimeInterface::ATOM),
-            'createdAt'        => $task->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'dueDate' => $task->getDueDate()?->format(\DateTimeInterface::ATOM),
+            'sortOrder' => $task->getSortOrder(),
+            'createdAt' => $task->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ], 'Task created successfully');
     }
 }
