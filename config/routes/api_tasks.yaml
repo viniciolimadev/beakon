@@ -7,3 +7,8 @@ api_tasks_list:
     path:       /api/tasks
     controller: App\Controller\Task\ListTasksController
     methods:    [GET]
+
+api_tasks_update:
+    path:       /api/tasks/{id}
+    controller: App\Controller\Task\UpdateTaskController
+    methods:    [PUT]
