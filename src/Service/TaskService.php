@@ -179,4 +179,27 @@ final class TaskService
 
         return $task;
     }
+
+    public function delete(string $id, User $user): void
+    {
+        try {
+            $uuid = Uuid::fromString($id);
+        } catch (\InvalidArgumentException) {
+            throw new NotFoundHttpException('Task not found.');
+        }
+
+        /** @var Task|null $task */
+        $task = $this->em->find(Task::class, $uuid);
+
+        if ($task === null) {
+            throw new NotFoundHttpException('Task not found.');
+        }
+
+        if ($task->getUser() !== $user) {
+            throw new AccessDeniedHttpException('Access denied.');
+        }
+
+        $this->em->remove($task);
+        $this->em->flush();
+    }
 }

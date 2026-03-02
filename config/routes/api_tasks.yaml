@@ -13,6 +13,11 @@ api_tasks_update:
     controller: App\Controller\Task\UpdateTaskController
     methods:    [PUT]
 
+api_tasks_delete:
+    path:       /api/tasks/{id}
+    controller: App\Controller\Task\DeleteTaskController
+    methods:    [DELETE]
+
 api_tasks_change_status:
     path:       /api/tasks/{id}/status
     controller: App\Controller\Task\ChangeTaskStatusController
