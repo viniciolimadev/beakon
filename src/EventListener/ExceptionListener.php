@@ -11,9 +11,10 @@ final class ExceptionListener
     public function __invoke(ExceptionEvent $event): void
     {
         $throwable = $event->getThrowable();
+        error_log((string) $throwable);
 
         if ($throwable instanceof HttpExceptionInterface) {
-            $status  = $throwable->getStatusCode();
+            $status = $throwable->getStatusCode();
             $message = $throwable->getMessage() ?: $this->defaultMessage($status);
 
             $event->setResponse(ApiResponse::error($message, $status));
