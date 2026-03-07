@@ -1,0 +1,9 @@
+api_routines_create:
+    path:       /api/routines
+    controller: App\Controller\Routine\CreateRoutineController
+    methods:    [POST]
+
+api_routines_today:
+    path:       /api/routines/today
+    controller: App\Controller\Routine\TodayRoutineController
+    methods:    [GET]
