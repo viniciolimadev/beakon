@@ -22,12 +22,29 @@ class RoutineItemRepository extends ServiceEntityRepository
      */
     public function findActiveByUserAndDay(User $user, int $dayOfWeek): array
     {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = <<<SQL
+            SELECT id
+            FROM routine_items
+            WHERE user_id = :userId
+              AND is_active = true
+              AND days_of_week::jsonb @> :day::jsonb
+            ORDER BY time_of_day ASC
+            SQL;
+
+        $ids = $conn->fetchFirstColumn($sql, [
+            'userId' => (string) $user->getId(),
+            'day'    => json_encode([$dayOfWeek]),
+        ]);
+
+        if (empty($ids)) {
+            return [];
+        }
+
         return $this->createQueryBuilder('r')
-            ->where('r.user = :user')
-            ->andWhere('r.isActive = true')
-            ->andWhere('JSON_CONTAINS(r.daysOfWeek, :day) = 1')
-            ->setParameter('user', $user)
-            ->setParameter('day', (string) $dayOfWeek)
+            ->where('r.id IN (:ids)')
+            ->setParameter('ids', $ids)
             ->orderBy('r.timeOfDay', 'ASC')
             ->getQuery()
             ->getResult();
