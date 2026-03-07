@@ -112,4 +112,63 @@ class PomodoroSessionRepository extends ServiceEntityRepository
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
+
+    public function getStatsForUser(User $user): array
+    {
+        $now         = new \DateTimeImmutable();
+        $todayStart  = $now->setTime(0, 0, 0);
+        $weekStart   = $now->modify('monday this week')->setTime(0, 0, 0);
+        $monthStart  = $now->modify('first day of this month')->setTime(0, 0, 0);
+
+        $base = $this->createQueryBuilder('p')
+            ->where('p.user = :user')
+            ->andWhere('p.finishedAt IS NOT NULL')
+            ->setParameter('user', $user);
+
+        $minutesToday = (int) (clone $base)
+            ->select('COALESCE(SUM(p.durationMinutes), 0)')
+            ->andWhere('p.startedAt >= :todayStart')
+            ->setParameter('todayStart', $todayStart)
+            ->getQuery()->getSingleScalarResult();
+
+        $minutesWeek = (int) (clone $base)
+            ->select('COALESCE(SUM(p.durationMinutes), 0)')
+            ->andWhere('p.startedAt >= :weekStart')
+            ->setParameter('weekStart', $weekStart)
+            ->getQuery()->getSingleScalarResult();
+
+        $minutesMonth = (int) (clone $base)
+            ->select('COALESCE(SUM(p.durationMinutes), 0)')
+            ->andWhere('p.startedAt >= :monthStart')
+            ->setParameter('monthStart', $monthStart)
+            ->getQuery()->getSingleScalarResult();
+
+        $sessionsCompleted = (int) (clone $base)
+            ->select('COUNT(p.id)')
+            ->andWhere('p.completed = true')
+            ->getQuery()->getSingleScalarResult();
+
+        $sessionsInterrupted = (int) (clone $base)
+            ->select('COUNT(p.id)')
+            ->andWhere('p.completed = false')
+            ->getQuery()->getSingleScalarResult();
+
+        $daysInWeek = (int) $this->getEntityManager()->getConnection()->fetchOne(
+            'SELECT COUNT(DISTINCT DATE(started_at)) FROM pomodoro_sessions WHERE user_id = :userId AND started_at >= :weekStart AND finished_at IS NOT NULL',
+            ['userId' => (string) $user->getId(), 'weekStart' => $weekStart->format('Y-m-d H:i:s')]
+        );
+
+        $avgSessionsPerDay = $daysInWeek > 0
+            ? round(($sessionsCompleted + $sessionsInterrupted) / $daysInWeek, 1)
+            : 0.0;
+
+        return [
+            'minutesToday'        => $minutesToday,
+            'minutesWeek'         => $minutesWeek,
+            'minutesMonth'        => $minutesMonth,
+            'sessionsCompleted'   => $sessionsCompleted,
+            'sessionsInterrupted' => $sessionsInterrupted,
+            'avgSessionsPerDay'   => $avgSessionsPerDay,
+        ];
+    }
 }

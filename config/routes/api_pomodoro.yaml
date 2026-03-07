@@ -12,3 +12,8 @@ api_pomodoro_history:
     path:       /api/pomodoro/history
     controller: App\Controller\Pomodoro\HistoryPomodoroController
     methods:    [GET]
+
+api_pomodoro_stats:
+    path:       /api/pomodoro/stats
+    controller: App\Controller\Pomodoro\StatsPomodoroController
+    methods:    [GET]
