@@ -22,7 +22,24 @@ final class TaskCompletedListener
         $task     = $event->task;
         $user     = $event->user;
         $priority = $task->getPriority();
+        $today    = new \DateTimeImmutable('today');
 
+        // ── Streak ────────────────────────────────────────────
+        $lastActivity = $user->getLastActivityDate();
+
+        if ($lastActivity === null || $lastActivity->format('Y-m-d') !== $today->format('Y-m-d')) {
+            $yesterday = $today->modify('-1 day');
+
+            if ($lastActivity !== null && $lastActivity->format('Y-m-d') === $yesterday->format('Y-m-d')) {
+                $user->setStreakDays($user->getStreakDays() + 1);
+            } else {
+                $user->setStreakDays(1);
+            }
+
+            $user->setLastActivityDate($today);
+        }
+
+        // ── XP ────────────────────────────────────────────────
         $xp = self::XP_TABLE[$priority] ?? self::XP_TABLE['medium'];
 
         if ($user->getStreakDays() >= 3) {
