@@ -3,9 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\PomodoroSession;
+use App\Entity\Task;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @extends ServiceEntityRepository<PomodoroSession>
@@ -47,8 +49,17 @@ class PomodoroSessionRepository extends ServiceEntityRepository
             ->setMaxResults($perPage);
 
         if ($taskId !== null) {
-            $qb->andWhere('CAST(p.task AS string) = :taskId')
-               ->setParameter('taskId', $taskId);
+            try {
+                $taskUuid = Uuid::fromString($taskId);
+                $task     = $this->getEntityManager()->find(Task::class, $taskUuid);
+                if ($task !== null) {
+                    $qb->andWhere('p.task = :task')->setParameter('task', $task);
+                } else {
+                    $qb->andWhere('1 = 0'); // nenhum resultado
+                }
+            } catch (\InvalidArgumentException) {
+                $qb->andWhere('1 = 0');
+            }
         }
 
         if ($dateFrom !== null) {
@@ -76,8 +87,17 @@ class PomodoroSessionRepository extends ServiceEntityRepository
             ->setParameter('user', $user);
 
         if ($taskId !== null) {
-            $qb->andWhere('CAST(p.task AS string) = :taskId')
-               ->setParameter('taskId', $taskId);
+            try {
+                $taskUuid = Uuid::fromString($taskId);
+                $task     = $this->getEntityManager()->find(Task::class, $taskUuid);
+                if ($task !== null) {
+                    $qb->andWhere('p.task = :task')->setParameter('task', $task);
+                } else {
+                    $qb->andWhere('1 = 0'); // nenhum resultado
+                }
+            } catch (\InvalidArgumentException) {
+                $qb->andWhere('1 = 0');
+            }
         }
 
         if ($dateFrom !== null) {
