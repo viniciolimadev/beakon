@@ -42,6 +42,8 @@ class TaskCompletedXpTest extends WebTestCase
     {
         /** @var EntityManagerInterface $em */
         $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em->createQuery('DELETE FROM App\Entity\UserAchievement ua WHERE ua.user IN (SELECT u FROM App\Entity\User u WHERE u.email = :email)')
+            ->execute(['email' => $this->testEmail]);
         $em->createQuery('DELETE FROM App\Entity\Task t WHERE t.user IN (SELECT u FROM App\Entity\User u WHERE u.email = :email)')
             ->execute(['email' => $this->testEmail]);
         $em->createQuery('DELETE FROM App\Entity\User u WHERE u.email = :email')
@@ -85,29 +87,32 @@ class TaskCompletedXpTest extends WebTestCase
     {
         $this->createAndCompleteTask('low');
 
-        $this->assertSame(10, $this->getUserXp());
+        // 10 (task) + 50 (first_task achievement) = 60
+        $this->assertSame(60, $this->getUserXp());
     }
 
     public function test_medium_priority_gives_25_xp(): void
     {
         $this->createAndCompleteTask('medium');
 
-        $this->assertSame(25, $this->getUserXp());
+        // 25 (task) + 50 (first_task achievement) = 75
+        $this->assertSame(75, $this->getUserXp());
     }
 
     public function test_high_priority_gives_50_xp(): void
     {
         $this->createAndCompleteTask('high');
 
-        $this->assertSame(50, $this->getUserXp());
+        // 50 (task) + 50 (first_task achievement) + 50 (xp_100 achievement, since 100 XP reached) = 150
+        $this->assertSame(150, $this->getUserXp());
     }
 
     public function test_xp_accumulates_across_tasks(): void
     {
-        $this->createAndCompleteTask('low');    // +10
-        $this->createAndCompleteTask('medium'); // +25
+        $this->createAndCompleteTask('low');    // 10 + 50 (first_task) = 60
+        $this->createAndCompleteTask('medium'); // 25 (no new achievements: xp stays at 85, below 100)
 
-        $this->assertSame(35, $this->getUserXp());
+        $this->assertSame(85, $this->getUserXp());
     }
 
     // ── bônus de streak ───────────────────────────────────────
@@ -118,27 +123,23 @@ class TaskCompletedXpTest extends WebTestCase
         $em = static::getContainer()->get(EntityManagerInterface::class);
         $em->clear();
         $user = $em->find(User::class, $this->user->getId());
+        // Set streak=3 + lastActivityDate=yesterday so streak increments to 4 (bonus applies)
         $user->setStreakDays(3);
+        $user->setLastActivityDate(new \DateTimeImmutable('yesterday'));
         $em->flush();
 
-        $this->createAndCompleteTask('medium'); // 25 * 1.5 = 37 (arredondado)
-
-        $xp = $this->getUserXp();
-        $this->assertSame(37, $xp); // floor(25 * 1.5) = 37
+        $this->createAndCompleteTask('medium');
+        // Streak: 3→4, bonus: floor(25 * 1.5) = 37 task XP
+        // Achievements: first_task(+50), streak_3(+100), xp_100(+50 since 37+50+100=187>=100) = 237
+        $this->assertSame(237, $this->getUserXp());
     }
 
     public function test_no_streak_bonus_when_streak_lt_3(): void
     {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-        $em->clear();
-        $user = $em->find(User::class, $this->user->getId());
-        $user->setStreakDays(2);
-        $em->flush();
-
+        // Fresh user (streak=0, lastActivityDate=null) → streak→1 after task, no bonus
         $this->createAndCompleteTask('medium');
-
-        $this->assertSame(25, $this->getUserXp());
+        // 25 (task, no bonus) + 50 (first_task achievement) = 75
+        $this->assertSame(75, $this->getUserXp());
     }
 
     // ── sem XP ao desmarcar ───────────────────────────────────

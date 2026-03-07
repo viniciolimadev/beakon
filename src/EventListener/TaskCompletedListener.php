@@ -3,6 +3,7 @@
 namespace App\EventListener;
 
 use App\Event\TaskCompletedEvent;
+use App\Service\AchievementService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
@@ -15,7 +16,10 @@ final class TaskCompletedListener
         'high'   => 50,
     ];
 
-    public function __construct(private readonly EntityManagerInterface $em) {}
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly AchievementService $achievementService,
+    ) {}
 
     public function __invoke(TaskCompletedEvent $event): void
     {
@@ -47,6 +51,10 @@ final class TaskCompletedListener
         }
 
         $user->addXp($xp);
+
+        // ── Achievements ──────────────────────────────────────
+        $this->achievementService->checkAfterTaskCompleted($user);
+
         $this->em->flush();
     }
 }
