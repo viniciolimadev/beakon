@@ -2,3 +2,8 @@ api_pomodoro_start:
     path:       /api/pomodoro/start
     controller: App\Controller\Pomodoro\StartPomodoroController
     methods:    [POST]
+
+api_pomodoro_finish:
+    path:       /api/pomodoro/{id}/finish
+    controller: App\Controller\Pomodoro\FinishPomodoroController
+    methods:    [PATCH]
