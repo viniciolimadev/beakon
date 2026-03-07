@@ -1,0 +1,4 @@
+api_pomodoro_start:
+    path:       /api/pomodoro/start
+    controller: App\Controller\Pomodoro\StartPomodoroController
+    methods:    [POST]
