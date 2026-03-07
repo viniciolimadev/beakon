@@ -7,10 +7,35 @@ use App\Entity\User;
 use App\Exception\ValidationException;
 use App\Http\ApiResponse;
 use App\Service\TaskService;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
+#[OA\Tag(name: 'Tasks')]
+#[OA\Post(
+    path: '/api/tasks',
+    summary: 'Create a new task',
+    requestBody: new OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['title'],
+            properties: [
+                new OA\Property(property: 'title', type: 'string', example: 'My task'),
+                new OA\Property(property: 'description', type: 'string', nullable: true),
+                new OA\Property(property: 'status', type: 'string', enum: ['inbox', 'today', 'in_progress', 'done'], default: 'inbox'),
+                new OA\Property(property: 'priority', type: 'string', enum: ['low', 'medium', 'high'], default: 'medium'),
+                new OA\Property(property: 'estimated_minutes', type: 'integer', nullable: true),
+                new OA\Property(property: 'due_date', type: 'string', format: 'date', nullable: true),
+            ]
+        )
+    ),
+    responses: [
+        new OA\Response(response: 201, description: 'Task created'),
+        new OA\Response(response: 401, description: 'Unauthorized'),
+        new OA\Response(response: 422, description: 'Validation error'),
+    ]
+)]
 class CreateTaskController extends AbstractController
 {
     public function __construct(private readonly TaskService $taskService)
