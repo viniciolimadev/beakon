@@ -56,18 +56,13 @@ class RegisterController extends AbstractController
             return ApiResponse::validationError($e->getViolations());
         }
 
-        $tokens = $this->jwtService->createTokensForUser($user);
-
         return ApiResponse::created([
-            'token' => $tokens['access_token'],
-            'user' => [
-                'id' => (string) $user->getId(),
-                'name' => $user->getName(),
-                'email' => $user->getEmail(),
-                'xp' => $user->getXp(),
-                'streakDays' => $user->getStreakDays(),
-                'createdAt' => $user->getCreatedAt()->format(\DateTimeInterface::ATOM),
-            ]
+            'id'        => (string) $user->getId(),
+            'name'      => $user->getName(),
+            'email'     => $user->getEmail(),
+            'xp'        => $user->getXp(),
+            'streakDays' => $user->getStreakDays(),
+            'createdAt' => $user->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ], 'User registered successfully');
     }
 }

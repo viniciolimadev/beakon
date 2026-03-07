@@ -101,7 +101,7 @@ class ChangeTaskStatusControllerTest extends WebTestCase
     {
         $task = $this->createTaskViaService();
 
-        $response = $this->patchStatus((string) $task->getId(), 'in_progress');
+        $response = $this->patchStatus((string) $task->getId(), 'today');
 
         $this->assertSame(200, $response->getStatusCode());
     }
@@ -185,7 +185,7 @@ class ChangeTaskStatusControllerTest extends WebTestCase
         $user = $em->getRepository(User::class)->findOneBy(['email' => $this->testEmail]);
         $xpBefore = $user->getXp();
 
-        $this->patchStatus((string) $task->getId(), 'in_progress');
+        $this->patchStatus((string) $task->getId(), 'today');
 
         $em->clear();
         $user = $em->getRepository(User::class)->findOneBy(['email' => $this->testEmail]);

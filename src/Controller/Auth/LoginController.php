@@ -55,12 +55,13 @@ class LoginController extends AbstractController
         }
 
         return ApiResponse::success([
-            'access_token' => $tokens['access_token'],
+            'access_token'  => $tokens['access_token'],
+            'refresh_token' => $tokens['refresh_token'],
             'user' => [
-                'id' => (string) $user->getId(),
-                'name' => $user->getName(),
-                'email' => $user->getEmail(),
-                'xp' => $user->getXp(),
+                'id'         => (string) $user->getId(),
+                'name'       => $user->getName(),
+                'email'      => $user->getEmail(),
+                'xp'         => $user->getXp(),
                 'streakDays' => $user->getStreakDays(),
             ]
         ]);
