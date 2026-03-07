@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Dto\CreateRoutineInput;
+use App\Dto\UpdateRoutineInput;
 use App\Entity\RoutineItem;
 use App\Entity\User;
 use App\Exception\ValidationException;
@@ -38,6 +39,31 @@ final class RoutineService
         $this->em->flush();
 
         return $item;
+    }
+
+    public function update(string $id, UpdateRoutineInput $input, User $user): RoutineItem
+    {
+        $violations = $this->validator->validate($input);
+
+        if (count($violations) > 0) {
+            throw new ValidationException($violations);
+        }
+
+        $item = $this->findOwnedOrFail($id, $user);
+        $item->setTitle($input->title);
+        $item->setTimeOfDay($input->timeOfDay);
+        $item->setDaysOfWeek($input->daysOfWeek);
+        $item->setSortOrder($input->order);
+        $this->em->flush();
+
+        return $item;
+    }
+
+    public function delete(string $id, User $user): void
+    {
+        $item = $this->findOwnedOrFail($id, $user);
+        $this->em->remove($item);
+        $this->em->flush();
     }
 
     public function toggle(string $id, User $user): RoutineItem
