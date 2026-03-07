@@ -5,10 +5,27 @@ namespace App\Controller\Pomodoro;
 use App\Entity\User;
 use App\Http\ApiResponse;
 use App\Repository\PomodoroSessionRepository;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
+#[OA\Tag(name: 'Pomodoro')]
+#[OA\Get(
+    path: '/api/pomodoro/history',
+    summary: 'List Pomodoro session history with filters',
+    parameters: [
+        new OA\Parameter(name: 'task_id', in: 'query', required: false, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        new OA\Parameter(name: 'date_from', in: 'query', required: false, schema: new OA\Schema(type: 'string', format: 'date')),
+        new OA\Parameter(name: 'date_to', in: 'query', required: false, schema: new OA\Schema(type: 'string', format: 'date')),
+        new OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
+        new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 20)),
+    ],
+    responses: [
+        new OA\Response(response: 200, description: 'Paginated session history'),
+        new OA\Response(response: 401, description: 'Unauthorized'),
+    ]
+)]
 class HistoryPomodoroController extends AbstractController
 {
     public function __construct(private readonly PomodoroSessionRepository $sessionRepository)

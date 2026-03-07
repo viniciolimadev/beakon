@@ -9,9 +9,19 @@ use App\Repository\PomodoroSessionRepository;
 use App\Repository\UserAchievementRepository;
 use App\Service\AchievementService;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+#[OA\Tag(name: 'Gamification')]
+#[OA\Get(
+    path: '/api/gamification/dashboard',
+    summary: 'Get gamification dashboard summary',
+    responses: [
+        new OA\Response(response: 200, description: 'XP, streak, achievements, tasks today, minutes today, recent achievements'),
+        new OA\Response(response: 401, description: 'Unauthorized'),
+    ]
+)]
 class DashboardController extends AbstractController
 {
     public function __construct(

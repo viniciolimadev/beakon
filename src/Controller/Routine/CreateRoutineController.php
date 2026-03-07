@@ -7,10 +7,33 @@ use App\Entity\User;
 use App\Exception\ValidationException;
 use App\Http\ApiResponse;
 use App\Service\RoutineService;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
+#[OA\Tag(name: 'Routines')]
+#[OA\Post(
+    path: '/api/routines',
+    summary: 'Create a routine item',
+    requestBody: new OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['title', 'time_of_day', 'days_of_week'],
+            properties: [
+                new OA\Property(property: 'title', type: 'string', example: 'Morning workout'),
+                new OA\Property(property: 'time_of_day', type: 'string', example: '07:00'),
+                new OA\Property(property: 'days_of_week', type: 'array', items: new OA\Items(type: 'integer'), example: [1, 2, 3, 4, 5]),
+                new OA\Property(property: 'order', type: 'integer', default: 0),
+            ]
+        )
+    ),
+    responses: [
+        new OA\Response(response: 201, description: 'Routine item created'),
+        new OA\Response(response: 401, description: 'Unauthorized'),
+        new OA\Response(response: 422, description: 'Validation error'),
+    ]
+)]
 class CreateRoutineController extends AbstractController
 {
     public function __construct(private readonly RoutineService $routineService)
