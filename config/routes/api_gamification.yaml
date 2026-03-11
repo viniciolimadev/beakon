@@ -1,0 +1,14 @@
+api_gamification_achievements:
+    path:       /api/gamification/achievements
+    controller: App\Controller\Gamification\AchievementsController
+    methods:    [GET]
+
+api_gamification_dashboard:
+    path:       /api/gamification/dashboard
+    controller: App\Controller\Gamification\DashboardController
+    methods:    [GET]
+
+api_gamification_streak:
+    path:       /api/gamification/streak
+    controller: App\Controller\Gamification\StreakController
+    methods:    [GET]
