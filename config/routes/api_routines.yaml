@@ -1,0 +1,4 @@
+api_routines_create:
+    path:       /api/routines
+    controller: App\Controller\Routine\CreateRoutineController
+    methods:    [POST]
