@@ -15,7 +15,7 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         auth:
-            pattern: ^/api/(auth|health)
+            pattern: ^/api/(auth|health|docs)
             stateless: true
             security: false
         main:
@@ -26,6 +26,7 @@ security:
 
     access_control:
         - { path: ^/api/auth, roles: PUBLIC_ACCESS }
+        - { path: ^/api/docs, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

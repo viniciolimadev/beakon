@@ -148,7 +148,7 @@ class CreateTaskControllerTest extends WebTestCase
         $response = $this->createTask([
             'title'             => 'Tarefa completa',
             'description'       => 'Detalhes da tarefa',
-            'status'            => 'in_progress',
+            'status'            => 'today',
             'priority'          => 'high',
             'estimated_minutes' => 90,
             'due_date'          => '2026-12-31T23:59:59+00:00',

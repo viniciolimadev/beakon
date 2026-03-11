@@ -95,7 +95,7 @@ class UpdateTaskControllerTest extends WebTestCase
     {
         return array_merge([
             'title'    => 'Título atualizado',
-            'status'   => 'in_progress',
+            'status'   => 'today',
             'priority' => 'high',
         ], $overrides);
     }
@@ -121,7 +121,7 @@ class UpdateTaskControllerTest extends WebTestCase
         );
 
         $this->assertSame('Novo título', $body['data']['title']);
-        $this->assertSame('in_progress', $body['data']['status']);
+        $this->assertSame('today', $body['data']['status']);
         $this->assertSame('high', $body['data']['priority']);
     }
 
@@ -138,7 +138,7 @@ class UpdateTaskControllerTest extends WebTestCase
         $updated = $em->getRepository(Task::class)->find($task->getId());
 
         $this->assertSame('Persistido', $updated->getTitle());
-        $this->assertSame('in_progress', $updated->getStatus());
+        $this->assertSame('today', $updated->getStatus());
     }
 
     public function test_update_clears_nullable_fields(): void
